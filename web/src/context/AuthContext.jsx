@@ -19,10 +19,10 @@ export function AuthProvider({ children }) {
     return () => { active = false }
   }, [])
   // Memory-only and account-scoped: reload/sign-out clears the simulation.
-  const currentMock = mockState?.userId === userId ? mockState.value : null
+  const currentMock = mockState && mockState.userId === userId ? mockState.value : null
   const mockAction = useCallback((action) => {
     if (!mockAllowed || !mockRuntime || !userId) throw new Error('Local mock billing unavailable')
-    setMockState((previous) => ({ userId, value: mockRuntime.transition(previous?.userId === userId ? previous.value : null, action) }))
+    setMockState((previous) => ({ userId, value: mockRuntime.transition(previous && previous.userId === userId ? previous.value : null, action) }))
   }, [mockRuntime, userId])
   useEffect(() => { setMockState(null) }, [userId])
 
