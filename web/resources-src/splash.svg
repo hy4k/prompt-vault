@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4DE6B"/>
+      <stop offset="1" stop-color="#FFD633"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFD633" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#FFD633" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="2732" height="2732" fill="#07070B"/>
+  <circle cx="1366" cy="1240" r="900" fill="url(#glow)"/>
+  <g transform="translate(846,720) scale(1.04)">
+    <rect x="0" y="0" width="600" height="600" rx="150" fill="url(#gold)"/>
+    <path d="M300 90 l58 135 124 -37 -57 110 104 41 -118 44 14 126 -104 -67 -90 60 14 -124 -118 -42 105 -45 -57 -108 122 38 z"
+          fill="#07070B"/>
+  </g>
+  <text x="1366" y="1640" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-size="120" font-weight="700" letter-spacing="18" fill="#F4DE6B">PROMPTVAULT</text>
+  <text x="1366" y="1740" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-size="48" letter-spacing="14" fill="#8b8b98">EVERY GREAT ANSWER BEGINS HERE</text>
+</svg>

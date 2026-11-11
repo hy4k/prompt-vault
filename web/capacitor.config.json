@@ -1,0 +1,8 @@
+{
+  "appId": "in.orchestrio.promptvault",
+  "appName": "PromptVault",
+  "webDir": "dist",
+  "backgroundColor": "#07070B",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "automatic" }
+}

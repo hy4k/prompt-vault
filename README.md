@@ -77,6 +77,33 @@ During development Vite proxies `/api/*` to the server (see `web/vite.config.js`
 
 Coding · Copywriting · Marketing · Productivity · Art/Midjourney · Other
 
+## Mobile app (Capacitor)
+
+The Android project lives in `web/android/` — a full Capacitor wrapper around the same React app.
+
+**Prereqs:** Android Studio + Android SDK. (iOS requires a Mac: `npx cap add ios` there.)
+
+```bash
+cd web
+
+# Rebuild the mobile bundle (bakes the production API origin into the app)
+VITE_API_URL=https://orchestrio.in npm run build
+
+# Push web + plugin changes into the native project
+npx cap sync android
+```
+
+Then in Android Studio: **Open** → `web/android/` → Run on a device, or
+**Build → Generate Signed App Bundle** for the Play Store.
+
+- App ID: `in.orchestrio.promptvault`
+- Icons & splash screens are generated from `web/resources-src/` via
+  `npx @capacitor/assets generate`
+- The web deploy is unaffected — it uses same-origin `/api` (no `VITE_API_URL`)
+- Store subscriptions: when you're ready for in-app purchases, integrate
+  **RevenueCat** — its webhook can flip `profiles.plan` exactly like the
+  Stripe webhook does today.
+
 ## Notes
 
 - Private prompts are invisible to everyone (including the feed) thanks to RLS — the client never filters them out itself.

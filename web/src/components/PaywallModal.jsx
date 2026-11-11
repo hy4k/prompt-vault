@@ -4,6 +4,7 @@ import { Check, Crown, Loader2, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { PRO_FEATURES } from '../lib/plans'
+import { apiUrl } from '../lib/api'
 
 /**
  * Upgrade prompt shown when a free user hits a plan limit (or via upsell).
@@ -31,7 +32,7 @@ export default function PaywallModal({ open, onClose, reason }) {
     }
     setBusy(true)
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch(apiUrl('/api/stripe/checkout'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.access_token}`,

@@ -4,6 +4,7 @@ import { Check, Crown, Loader2, Settings } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { isPro, PRO_FEATURES } from '../lib/plans'
+import { apiUrl } from '../lib/api'
 import Reveal from '../hooks/Reveal'
 
 const MockBillingPanel = typeof __LOCAL_MOCK_BILLING__ !== 'undefined' && __LOCAL_MOCK_BILLING__ ? lazy(() => import('../components/MockBillingPanel')) : null
@@ -51,7 +52,7 @@ export default function PricingPage() {
     }
     setBusy(true)
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch(apiUrl('/api/stripe/checkout'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -71,7 +72,7 @@ export default function PricingPage() {
   const manageBilling = async () => {
     setBusy(true)
     try {
-      const res = await fetch('/api/stripe/portal', {
+      const res = await fetch(apiUrl('/api/stripe/portal'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${session.access_token}` },
       })
