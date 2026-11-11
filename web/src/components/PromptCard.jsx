@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import {
+  BookmarkPlus,
   Check,
   Copy,
   Globe,
@@ -37,6 +38,7 @@ export default function PromptCard({
   onCopy,
   onLike,
   onFollow,
+  onSave,
   onEdit,
   onDelete,
   showAuthor = true,
@@ -156,6 +158,16 @@ export default function PromptCard({
             <Copy size={13} />
             <span className="font-mono">{prompt.copy_count ?? 0}</span>
           </span>
+          {!isOwner && onSave && (
+            <button
+              onClick={() => onSave(prompt)}
+              className="flex items-center gap-1.5 transition hover:text-gold"
+              title={viewerId ? 'Save to my vault' : 'Sign in to save'}
+            >
+              <BookmarkPlus size={15} />
+              <span className="hidden sm:inline">Save</span>
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5">

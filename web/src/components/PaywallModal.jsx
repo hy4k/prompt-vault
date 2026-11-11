@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, Crown, Loader2, X } from 'lucide-react'
+import { Check, Clock, Crown, Loader2, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { PRO_FEATURES } from '../lib/plans'
 import { apiUrl } from '../lib/api'
+import { PRICES, PRO_ROADMAP, PRO_SHIPPED } from '../lib/plans'
 
 /**
  * Upgrade prompt shown when a free user hits a plan limit (or via upsell).
@@ -82,8 +82,15 @@ export default function PaywallModal({ open, onClose, reason }) {
           {/* billing toggle */}
           <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-black/30 p-1.5">
             {[
-              { key: 'monthly', label: 'Monthly', price: '$9.99', per: '/mo' },
-              { key: 'yearly', label: 'Yearly', price: '$59.99', per: '/yr', badge: 'Save 50%' },
+              { key: 'monthly', label: 'Monthly', price: `$${PRICES.monthly}`, per: '/mo' },
+              {
+                key: 'yearly',
+                label: 'Yearly',
+                price: `$${PRICES.yearly}`,
+                per: '/yr',
+                sub: `$${(PRICES.yearly / 12).toFixed(2)}/mo`,
+                badge: 'Save 50%',
+              },
             ].map((opt) => (
               <button
                 key={opt.key}
@@ -102,14 +109,24 @@ export default function PaywallModal({ open, onClose, reason }) {
                   {opt.price}
                   <span className="text-xs font-normal text-slate-500">{opt.per}</span>
                 </span>
+                {opt.sub && <span className="block text-[10px] text-slate-500">{opt.sub}</span>}
               </button>
             ))}
           </div>
 
           <ul className="mt-6 flex flex-col gap-2.5">
-            {PRO_FEATURES.slice(0, 5).map((f) => (
+            {PRO_SHIPPED.map((f) => (
               <li key={f} className="flex items-start gap-2.5 text-sm text-slate-300">
                 <Check size={15} className="mt-0.5 shrink-0 text-gold" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <p className="label-caps mb-2 mt-5">Coming soon to Pro</p>
+          <ul className="flex flex-col gap-2">
+            {PRO_ROADMAP.slice(0, 3).map((f) => (
+              <li key={f} className="flex items-start gap-2.5 text-xs text-slate-500">
+                <Clock size={12} className="mt-0.5 shrink-0 text-slate-600" />
                 {f}
               </li>
             ))}
@@ -117,7 +134,11 @@ export default function PaywallModal({ open, onClose, reason }) {
 
           <button onClick={upgrade} className="btn-gold mt-7 w-full !py-3" disabled={busy}>
             {busy ? <Loader2 size={16} className="animate-spin" /> : <Crown size={16} />}
-            {session ? (mockBilling ? 'Simulate upgrade — no payment' : 'Upgrade now') : 'Sign in to upgrade'}
+            {session
+              ? mockBilling
+                ? 'Simulate upgrade — no payment'
+                : `Upgrade — $${interval === 'yearly' ? PRICES.yearly + '/yr' : PRICES.monthly + '/mo'}`
+              : 'Sign in to upgrade'}
           </button>
           <p className="mt-3 text-center text-[11px] text-slate-600">
             {mockBilling ? 'Local mock only · No real payment or database changes' : 'Secure checkout via Stripe · Cancel anytime'}

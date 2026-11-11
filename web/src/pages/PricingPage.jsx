@@ -1,27 +1,18 @@
-import { lazy, Suspense, useState } from 'react'
+import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Check, Crown, Loader2, Settings } from 'lucide-react'
+import { Check, Clock, Crown, Loader2, Settings } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-import { isPro, PRO_FEATURES } from '../lib/plans'
 import { apiUrl } from '../lib/api'
+import { isPro, PRICES, FREE_FEATURES, PRO_ROADMAP, PRO_SHIPPED } from '../lib/plans'
 import Reveal from '../hooks/Reveal'
 
-const MockBillingPanel = typeof __LOCAL_MOCK_BILLING__ !== 'undefined' && __LOCAL_MOCK_BILLING__ ? lazy(() => import('../components/MockBillingPanel')) : null
-
-const FREE_FEATURES = [
-  'Save up to 50 prompts',
-  'Share public prompts with the community',
-  'Follow creators, like and copy prompts',
-  'Category + audience discovery',
-]
-
-function FeatureList({ items, muted = false }) {
+function ShippedList({ items }) {
   return (
     <ul className="flex flex-col gap-3">
       {items.map((f) => (
-        <li key={f} className={`flex items-start gap-2.5 text-sm ${muted ? 'text-slate-400' : 'text-slate-200'}`}>
-          <Check size={15} className={`mt-0.5 shrink-0 ${muted ? 'text-slate-500' : 'text-gold'}`} />
+        <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
+          <Check size={15} className="mt-0.5 shrink-0 text-gold" />
           {f}
         </li>
       ))}
@@ -29,8 +20,24 @@ function FeatureList({ items, muted = false }) {
   )
 }
 
+function RoadmapList({ items }) {
+  return (
+    <div>
+      <p className="label-caps mb-2.5">On the roadmap — included when they ship</p>
+      <ul className="flex flex-col gap-2">
+        {items.map((f) => (
+          <li key={f} className="flex items-start gap-2.5 text-sm text-slate-500">
+            <Clock size={14} className="mt-0.5 shrink-0 text-slate-600" />
+            {f}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export default function PricingPage() {
-  const { user, profile, session, mockBilling, mockAction } = useAuth()
+  const { user, profile, session } = useAuth()
   const { pushToast } = useToast()
   const [params] = useSearchParams()
   const justUpgraded = params.get('upgraded') === '1'
@@ -43,11 +50,6 @@ export default function PricingPage() {
   const checkout = async () => {
     if (!user || !session) {
       pushToast('Sign in first, then pick a plan', 'error')
-      return
-    }
-    if (mockBilling) {
-      mockAction({ type: 'upgrade', interval })
-      pushToast('Mock Pro activated — no payment made')
       return
     }
     setBusy(true)
@@ -85,6 +87,8 @@ export default function PricingPage() {
     }
   }
 
+  const yearlyMonthly = (PRICES.yearly / 12).toFixed(2)
+
   return (
     <div className="pt-12 sm:pt-20">
       <Reveal>
@@ -92,36 +96,37 @@ export default function PricingPage() {
           <p className="label-caps">Pricing</p>
           <h1 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold tracking-tight text-white sm:text-5xl">
             Free to explore.{' '}
-            <span className="gradient-text font-serif italic tracking-normal">Pro to dominate.</span>
+            <span className="gradient-text font-serif italic tracking-normal">Pro for less than a coffee.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-400 sm:text-base">
-            The community feed stays free forever. Pro unlocks unlimited storage and the
-            power tools that make prompts pay for themselves.
+            The community feed stays free forever. Pro is priced so students and indie
+            creators can actually afford it.
           </p>
         </div>
       </Reveal>
 
-      {justUpgraded && !mockBilling && (
+      {justUpgraded && (
         <div className="toast-in mx-auto mt-8 max-w-md rounded-xl border border-gold/30 bg-panel/90 px-5 py-4 text-center text-sm text-gold-soft shadow-2xl">
           Payment received — your Pro access activates within a few seconds. Welcome aboard.
         </div>
       )}
 
-      {mockBilling && MockBillingPanel && <Suspense fallback={null}><MockBillingPanel /></Suspense>}
-
       {/* billing toggle */}
       <div className="mt-10 flex justify-center">
         <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1">
-          {['monthly', 'yearly'].map((key) => (
+          {[
+            { key: 'monthly', label: 'Monthly' },
+            { key: 'yearly', label: 'Yearly', badge: 'Save 50%' },
+          ].map((opt) => (
             <button
-              key={key}
-              onClick={() => setInterval(key)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize transition ${
-                interval === key ? 'bg-gold text-obsidian' : 'text-slate-400 hover:text-white'
+              key={opt.key}
+              onClick={() => setInterval(opt.key)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                interval === opt.key ? 'bg-gold text-obsidian' : 'text-slate-400 hover:text-white'
               }`}
             >
-              {key}
-              {key === 'yearly' && <span className="ml-1.5 text-[10px] font-bold">-50%</span>}
+              {opt.label}
+              {opt.badge && <span className="ml-1.5 text-[10px] font-bold">{opt.badge}</span>}
             </button>
           ))}
         </div>
@@ -138,7 +143,14 @@ export default function PricingPage() {
             <p className="font-display text-4xl font-semibold text-white">
               $0<span className="text-base font-normal text-slate-500"> /forever</span>
             </p>
-            <FeatureList items={FREE_FEATURES} muted />
+            <ul className="flex flex-col gap-3">
+              {FREE_FEATURES.map((f) => (
+                <li key={f} className="flex items-start gap-2.5 text-sm text-slate-400">
+                  <Check size={15} className="mt-0.5 shrink-0 text-slate-500" />
+                  {f}
+                </li>
+              ))}
+            </ul>
             <div className="mt-auto">
               {user ? (
                 <button className="btn-ghost w-full" disabled>
@@ -163,26 +175,53 @@ export default function PricingPage() {
               <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-white">
                 <Crown size={18} className="text-gold" /> Pro
               </h2>
-              <p className="mt-1 text-sm text-slate-500">For professionals who live in AI tools.</p>
+              <p className="mt-1 text-sm text-slate-500">For people who live in AI tools.</p>
             </div>
-            <p className="font-display text-4xl font-semibold text-white">
-              {interval === 'yearly' ? '$4.99' : '$9.99'}
-              <span className="text-base font-normal text-slate-500">
-                {' '}
-                /mo{interval === 'yearly' && ', billed yearly'}
-              </span>
-            </p>
-            <FeatureList items={PRO_FEATURES} />
+
+            {/* Price — total charge is unambiguous */}
+            <div>
+              {interval === 'yearly' ? (
+                <>
+                  <p className="font-display text-4xl font-semibold text-white">
+                    ${PRICES.yearly}
+                    <span className="text-base font-normal text-slate-500"> /year</span>
+                  </p>
+                  <p className="mt-1.5 text-sm text-slate-400">
+                    Charged <span className="font-semibold text-gold-soft">once a year at ${PRICES.yearly}</span>{' '}
+                    — works out to ${yearlyMonthly}/mo, a 50% saving.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-display text-4xl font-semibold text-white">
+                    ${PRICES.monthly}
+                    <span className="text-base font-normal text-slate-500"> /month</span>
+                  </p>
+                  <p className="mt-1.5 text-sm text-slate-400">
+                    Billed monthly at ${PRICES.monthly}. Switch to yearly and save 50%.
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-5">
+              <div>
+                <p className="label-caps mb-2.5">Included today</p>
+                <ShippedList items={PRO_SHIPPED} />
+              </div>
+              <RoadmapList items={PRO_ROADMAP} />
+            </div>
+
             <div className="mt-auto">
               {pro ? (
                 <button onClick={manageBilling} className="btn-ghost w-full" disabled={busy}>
                   {busy ? <Loader2 size={16} className="animate-spin" /> : <Settings size={16} />}
-                  {mockBilling ? 'Manage mock billing' : 'Manage billing'}
+                  Manage billing
                 </button>
               ) : (
                 <button onClick={checkout} className="btn-gold w-full !py-3" disabled={busy}>
                   {busy ? <Loader2 size={16} className="animate-spin" /> : <Crown size={16} />}
-                  {user ? (mockBilling ? 'Simulate upgrade to Pro' : 'Upgrade to Pro') : 'Sign in to upgrade'}
+                  {user ? `Upgrade — $${interval === 'yearly' ? PRICES.yearly + '/yr' : PRICES.monthly + '/mo'}` : 'Sign in to upgrade'}
                 </button>
               )}
             </div>
@@ -191,7 +230,7 @@ export default function PricingPage() {
       </div>
 
       <p className="mt-10 text-center text-xs text-slate-600">
-        {mockBilling ? 'Local simulation only · No card needed · No provider or database changes' : 'Prices in USD · Secure payments by Stripe · Cancel anytime, keep access until period ends'}
+        Prices in USD · Secure payments by Stripe · Cancel anytime, keep access until your paid period ends
       </p>
     </div>
   )

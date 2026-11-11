@@ -20,7 +20,7 @@ export default function ProfilePage() {
   const { id } = useParams()
   const { user, refreshProfile } = useAuth()
   const { pushToast } = useToast()
-  const { likedIds, followedIds, copyPrompt, toggleLike, toggleFollow } = usePromptActions()
+  const { likedIds, followedIds, copyPrompt, toggleLike, toggleFollow, saveToVault } = usePromptActions()
 
   const [profile, setProfile] = useState(null)
   const [prompts, setPrompts] = useState([])
@@ -273,6 +273,7 @@ export default function ProfilePage() {
                     isFollowing={following}
                     onCopy={(p) => copyPrompt(p, setPrompts)}
                     onLike={(p) => toggleLike(p, setPrompts)}
+                    onSave={saveToVault}
                     onFollow={() =>
                       toggleFollow({ user_id: profile.id, username: profile.username }, fetchProfile)
                     }

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { copyText } from '../lib/clipboard'
+import { FREE_PROMPT_LIMIT } from '../lib/plans'
 
 /**
  * Shared prompt actions: copy (with counter bump), like/unlike, follow/unfollow.
@@ -112,5 +113,42 @@ export function usePromptActions() {
     [followedIds, user, pushToast, requireAuth]
   )
 
-  return { likedIds, followedIds, copyPrompt, toggleLike, toggleFollow }
+  /** Save a community prompt into the signed-in user's own vault. */
+  const saveToVault = useCallback(
+    async (prompt) => {
+      if (!requireAuth('save prompts')) return false
+      const { data: dup } = await supabase
+        .from('prompts')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('title', prompt.title)
+        .maybeSingle()
+      if (dup) {
+        pushToast('That prompt is already in your vault')
+        return false
+      }
+      const { error } = await supabase.from('prompts').insert({
+        user_id: user.id,
+        title: prompt.title,
+        content: prompt.content,
+        category: prompt.category,
+        audience: prompt.audience ?? 'General',
+        tags: prompt.tags ?? [],
+        is_public: false,
+      })
+      if (error) {
+        if (error.code === '42501') {
+          pushToast(`Your free vault is full (${FREE_PROMPT_LIMIT}) — upgrade for unlimited`, 'error')
+        } else {
+          pushToast(error.message, 'error')
+        }
+        return false
+      }
+      pushToast('Saved to your vault')
+      return true
+    },
+    [user, pushToast, requireAuth]
+  )
+
+  return { likedIds, followedIds, copyPrompt, toggleLike, toggleFollow, saveToVault }
 }

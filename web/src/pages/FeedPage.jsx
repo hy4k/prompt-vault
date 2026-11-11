@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Clock, Flame, Loader2, Search, Sparkles } from 'lucide-react'
+import { ArrowRight, Clock, Compass, Flame, Loader2, Search, Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { usePromptActions } from '../hooks/usePromptActions'
@@ -43,7 +43,7 @@ function Marquee() {
 
 export default function FeedPage() {
   const { user } = useAuth()
-  const { likedIds, followedIds, copyPrompt, toggleLike, toggleFollow } = usePromptActions()
+  const { likedIds, followedIds, copyPrompt, toggleLike, toggleFollow, saveToVault } = usePromptActions()
   const [prompts, setPrompts] = useState([])
   const [category, setCategory] = useState('All')
   const [audience, setAudience] = useState('All audiences')
@@ -115,6 +115,13 @@ export default function FeedPage() {
     </div>
   )
 
+  const scrollToFeed = () =>
+    document.getElementById('feed')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  const STARTERS = ['Code reviewer persona', 'PAS email framework', 'Midjourney product shot']
+
+  const STEPS = ['Choose a prompt', 'Copy it', 'Paste into your AI tool']
+
   return (
     <div className="pt-10 sm:pt-16">
       {/* ---------------- Hero ---------------- */}
@@ -134,18 +141,66 @@ export default function FeedPage() {
           </h1>
 
           <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg">
-            Save your secret weapons. Share your crowd-pleasers. Steal the best of the
-            community — one tap, zero friction.
+            A community vault of prompts that actually work — organized by skill and by who
+            they're for. Free to browse, free to copy, yours to keep.
           </p>
 
+          {/* How it works */}
+          <div className="mt-7 flex flex-wrap items-center gap-x-7 gap-y-2.5 text-sm text-slate-300">
+            {STEPS.map((step, i) => (
+              <span key={step} className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full border border-gold/30 bg-gold/10 font-mono text-xs font-semibold text-gold">
+                  {i + 1}
+                </span>
+                {step}
+                {i < STEPS.length - 1 && (
+                  <ArrowRight size={13} className="hidden text-slate-600 sm:inline" />
+                )}
+              </span>
+            ))}
+          </div>
+
+          {/* CTAs — find first, share second */}
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link to={user ? '/vault' : '/signup'} className="btn-gold !px-6 !py-3 !text-base">
-              {user ? 'Share a prompt' : 'Start your vault'}
-              <ArrowRight size={17} />
-            </Link>
-            <a href="#feed" className="btn-ghost !px-6 !py-3 !text-base">
-              Browse the feed
+            <a href="#feed" className="btn-gold !px-6 !py-3 !text-base">
+              <Compass size={17} />
+              Find a useful prompt
             </a>
+            <Link to={user ? '/vault' : '/signup'} className="btn-ghost !px-6 !py-3 !text-base">
+              <Sparkles size={16} />
+              {user ? 'Share a prompt' : 'Create your free vault'}
+            </Link>
+          </div>
+
+          {/* Search — above the fold */}
+          <label className="relative mt-8 block max-w-xl">
+            <Search
+              size={15}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+            />
+            <input
+              className="input-glass !rounded-2xl !py-3.5 !pl-11"
+              placeholder='Try "code review", "email", "midjourney"…'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+
+          {/* Starter picks */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-500">Popular:</span>
+            {STARTERS.map((q) => (
+              <button
+                key={q}
+                onClick={() => {
+                  setSearch(q)
+                  scrollToFeed()
+                }}
+                className="chip border-white/10 bg-white/[0.03] text-slate-400 transition hover:border-gold/40 hover:text-gold"
+              >
+                {q}
+              </button>
+            ))}
           </div>
 
           {/* Live stats */}
@@ -174,16 +229,6 @@ export default function FeedPage() {
               {sortTab('newest', 'Newest', Clock)}
             </div>
           </div>
-
-          <label className="relative mb-3 block">
-            <Search size={15} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input
-              className="input-glass !rounded-2xl !py-3 !pl-11"
-              placeholder="Search prompts, content, or tags…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </label>
 
           <p className="label-caps mb-1 mt-2">Skill</p>
           <CategoryFilter value={category} onChange={setCategory} />
@@ -233,6 +278,7 @@ export default function FeedPage() {
                   onCopy={(p) => copyPrompt(p, setPrompts)}
                   onLike={(p) => toggleLike(p, setPrompts)}
                   onFollow={(p) => toggleFollow(p, fetchFeed)}
+                  onSave={saveToVault}
                 />
               </Reveal>
             ))}
